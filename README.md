@@ -1,2 +1,2 @@
 # SignSpeak
-SE Project - Indian Sign Language with feedback loop 
+SE Project - Indian Sign Language Tutor with feedback loop 
