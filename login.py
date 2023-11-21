@@ -4,6 +4,8 @@ from PIL import Image
 import io
 import cv2
 import numpy as np
+import cv2
+from streamlit.components.v1 import components
 
 
 # Initialize session state
@@ -43,20 +45,41 @@ if st.session_state.is_authenticated:
     def display_page(page_number):
         st.title(f"Page {page_number}")
         col1, col2 = st.columns(2)
-        cap = cv2.VideoCapture(0)
+
+        # Display an image from file
         image_path = f"{page_number}.jpg"
         col1.image(image_path, caption=f"Image {page_number}", width=200)
-        with col2:
-                while cap.isOpened():
-                    ret, frame = cap.read()
 
-                    if not ret:
-                        st.error("Error capturing video stream.")
-                        break
 
-                    resized_frame = cv2.resize(frame, (640, 480))
+        # Create a VideoCapture object
+        cap = cv2.VideoCapture(0)
 
-    selected_tab = st.sidebar.radio('Select a tab', ['Home', 'About Us', 'Learn'])
+        if not cap.isOpened():
+            st.error("Error capturing video stream.")
+        else:
+            # Read frames from the camera and display them
+            while True:
+                ret, frame = cap.read()
+
+                if not ret:
+                    st.error("Error capturing video stream.")
+                    break
+
+                # Resize the frame to fit the column width
+                resized_frame = cv2.resize(frame, (200, 200))
+
+                # Display the frame in the Streamlit app
+                col2.image(resized_frame, channels="BGR", use_column_width=True)
+
+
+                stop_signal = st.button("Stop Camera")
+                if stop_signal:
+                    break
+
+        # Release the VideoCapture object when done
+        cap.release()
+
+    selected_tab = st.sidebar.radio('Select a tab', ['Home', 'Learn', 'About Us'])
 
     # Display content based on the selected tab
     if selected_tab == 'Home':
@@ -82,20 +105,24 @@ if st.session_state.is_authenticated:
         st.header("ISL Courses")
         st.write("Whether you're fully committed to learning ISL or just want to get your feet wet, we've got the course for you. We’ve even bundled our most popular courses for even greater savings!")
         with st.expander("Click here to explore what we offer!", expanded=False):
-            # Add clickable buttons inside the expander
-            if st.button('Button 1'):
-                st.session_state.current_choice = 'Numbers'
-                st.session_state.current_page = 1
-            if st.button('Button 2'):
-                st.session_state.current_choice = 'Alphabets'
-                st.session_state.current_page = 1
-            if st.button('Button 3'):
-                st.write('Button 3 clicked!')
+            cols1,cols2 = st.columns(2)
+            with cols1:
+                st.write('**1. Learn ISL Alphabets**')
+                st.write('**2. Learn ISL Numbers**')
+                st.write('**3. Explore our ISL Glossary!**')
+                st.write('Please proceed to the **Learn** tab to continue learning!')
+
+            with cols2:
+                st.image('signs.jpg')
+            
+
 
     elif selected_tab == 'About Us':
         st.title('About Us')
-        st.write('Learn more about us here.')
-
+        st.header('Our Mission')
+        st.write('In a world increasingly interconnected, communication is the cornerstone of understanding and inclusion. However, for the Deaf and Hard of Hearing communities, effective communication often hinges on knowing sign language. Much like acquiring any foreign language, mastering ISL is a valuable skill that fosters meaningful interactions and bridges the communication gap.The Comprehensive ISL Teaching Website with Real-Time Feedback project aims to address a pressing need in society—a lack of accessible, effective, and interactive ISL learning resources. Our mission is to empower individuals to learn ISL as easily as they would a spoken language, enabling them to communicate with Deaf and dumb confidently. As part of user testing we are in talks with the Smiles Foundation to get iterative feedback on our product')
+        st.header('Our Team')
+        
     elif selected_tab == 'Learn':
         st.title('Learn')
 
@@ -126,4 +153,15 @@ if st.session_state.is_authenticated:
             st.session_state.current_page = current_page
         
         elif choice == 'Glossary':
-            st.write("test")
+            # YouTube playlist URL
+            playlist_url = "https://www.youtube.com/playlist?list=PLFjydPMg4DapfRTBMokl09Ht-fhMOAYf6"
+
+            # Generate the HTML code for the embedded YouTube playlist
+            iframe_code1 = f'<iframe width="700" height="500" src="https://www.youtube.com/embed/neE5Fg4FVtA?list=PLFjydPMg4DapfRTBMokl09Ht-fhMOAYf6" title="Module 1.3 Some polite useful phrases." frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>'
+            iframe_code2 = f'<iframe width="700" height="500" src="https://www.youtube.com/embed/n42ohSmbAFI?list=PLFjydPMg4DapfRTBMokl09Ht-fhMOAYf6" title="Module 1.1 Manners and etiquettes" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>'
+            iframe_code3 = f'<iframe width="700" height="500" src="https://www.youtube.com/embed/A-glx15JuWE?list=PLFjydPMg4DapfRTBMokl09Ht-fhMOAYf6" title="Module 8.3 Country and states of India." frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>'
+
+            # Display the embedded playlist using the IFrame component
+            st.markdown(iframe_code1, unsafe_allow_html=True)
+            st.markdown(iframe_code2, unsafe_allow_html=True)
+            st.markdown(iframe_code3, unsafe_allow_html=True)
