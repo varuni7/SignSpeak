@@ -1,4 +1,10 @@
 import streamlit as st
+import torch
+from PIL import Image
+import io
+import cv2
+import numpy as np
+
 
 # Initialize session state
 if 'is_authenticated' not in st.session_state:
@@ -37,10 +43,18 @@ if st.session_state.is_authenticated:
     def display_page(page_number):
         st.title(f"Page {page_number}")
         col1, col2 = st.columns(2)
-
+        cap = cv2.VideoCapture(0)
         image_path = f"{page_number}.jpg"
         col1.image(image_path, caption=f"Image {page_number}", width=200)
-        col2.image(image_path, caption=f"Image {page_number}", width=200)
+        with col2:
+                while cap.isOpened():
+                    ret, frame = cap.read()
+
+                    if not ret:
+                        st.error("Error capturing video stream.")
+                        break
+
+                    resized_frame = cv2.resize(frame, (640, 480))
 
     selected_tab = st.sidebar.radio('Select a tab', ['Home', 'About Us', 'Learn'])
 

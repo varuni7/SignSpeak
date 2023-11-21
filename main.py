@@ -8,9 +8,6 @@ import numpy as np
 
 @st.cache
 def load_model():
-    @~Tanisha load the model ehre
-    return custom_yolov7_model
-
 
 def get_prediction(img_bytes, model):
     img = Image.open(io.BytesIO(img_bytes))
