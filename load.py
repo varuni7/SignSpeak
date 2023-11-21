@@ -10,7 +10,7 @@ mp_drawing_styles = mp.solutions.drawing_styles
 data = []
 labels = []
 hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.3)
-DATA_DIR = r'C:\Users\Satish Das\Downloads\GMM(Student)\data'
+DATA_DIR = r'C:\Proj\data'
 width, height = 224, 224  # Specify the desired resolution
 
 for dir_ in os.listdir(DATA_DIR):
