@@ -43,12 +43,12 @@ if not st.session_state.is_authenticated:
 if st.session_state.is_authenticated:
     # Define function to display each page
     def display_page(page_number):
-        st.title(f"Page {page_number}")
+        st.title(f"Letter {chr(65+page_number-1)}")
         col1, col2 = st.columns(2)
 
         # Display an image from file
         image_path = f"{page_number}.jpg"
-        col1.image(image_path, caption=f"Image {page_number}", width=200)
+        col1.image(image_path, caption=f"Letter {chr(65+page_number-1)}", width=200)
 
 
         # Create a VideoCapture object
@@ -100,7 +100,7 @@ if st.session_state.is_authenticated:
         
 
         with col2:
-            st.image("1.jpg", caption='On-Demand lectures', use_column_width=True)
+            st.image("onthego.jpg", caption='On the Go!', use_column_width=True)
 
         st.header("ISL Courses")
         st.write("Whether you're fully committed to learning ISL or just want to get your feet wet, we've got the course for you. We’ve even bundled our most popular courses for even greater savings!")
@@ -132,15 +132,16 @@ if st.session_state.is_authenticated:
         if choice == 'Numbers':
             st.write('You selected Numbers. Add your code for Numbers here if needed.')
         elif choice == 'Alphabets':
-            st.write('You selected Alphabets. Here is the code:')
+            st.write("You've selected the Alphabets course")
             
             # Keep track of the current page number
             current_page = st.session_state.get('current_page', 1)
             
             # Add dropdown for all pages
             all_pages = list(range(1, 27))
-            page_selection = st.selectbox('Select a page', all_pages, index=current_page - 1)
-            display_page(page_selection)
+            all_letters = [chr(i) for i in range(ord('A'), ord('Z') + 1)]
+            page_selection = st.selectbox('Select a Letter', all_letters, index=current_page - 1)
+            display_page(int(ord(page_selection)-65 + 1))
             # Add Next and Previous buttons in the same row
             col1, col2, col3 = st.columns(3)
             if col1.button('Previous', key='prev_button'):
