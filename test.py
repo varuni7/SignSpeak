@@ -1,115 +1,72 @@
-import streamlit as st
+import cv2
+import mediapipe as mp
+import pickle
+import numpy as np
+import string
 
-# Initialize session state
-if 'is_authenticated' not in st.session_state:
-    st.session_state.is_authenticated = False
+# Create a list of labels for 1 to 9 and A to Z
 
-# Define actual credentials
-actual_email = "email"
-actual_password = "password"
+labels_dict={0:'1',1:'2',2:'3'}
 
-# Create an empty container
-placeholder = st.empty()
+# Create the labels_dict
+# labels_dict = {i: label for i, label in enumerate(labels_list)}
+model_dict = pickle.load(open('./model.p', 'rb'))
+model = model_dict['model']
 
-# Check if the user is authenticated
-if not st.session_state.is_authenticated:
-    # Insert a form in the container
-    with placeholder.form("login"):
-        st.markdown("#### Welcome to Sign Speak!")
-        st.markdown("Enter your credentials")
-        email = st.text_input("Email")
-        password = st.text_input("Password", type="password")
-        submit = st.form_submit_button("Login")
+cap = cv2.VideoCapture(0)
 
-    if submit and email == actual_email and password == actual_password:
-        # If the form is submitted and the email and password are correct,
-        # set the authentication status to True
-        st.session_state.is_authenticated = True
-        # Clear the form/container
-        placeholder.empty()
-    elif submit:
-        # If the form is submitted and the credentials are incorrect, display an error message
-        st.error("Invalid Email and Password")
+mp_hands = mp.solutions.hands
+mp_drawing = mp.solutions.drawing_utils
+mp_drawing_styles = mp.solutions.drawing_styles
 
-# If the user is authenticated, display the content
-if st.session_state.is_authenticated:
-    # Define function to display each page
-    def display_page(page_number):
-        st.title(f"Page {page_number}")
-        col1, col2 = st.columns(2)
+hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.3)
 
-        image_path = f"{page_number}.jpg"
-        col1.image(image_path, caption=f"Image {page_number}", width=200)
-        col2.image(image_path, caption=f"Image {page_number}", width=200)
+while True:
+    data_aux = []
+    ret, frame = cap.read()
+    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-    selected_tab = st.sidebar.radio('Select a tab', ['Home', 'About Us', 'Learn'])
+    # Resize frame if needed
+    # frame_rgb = cv2.resize(frame_rgb, (width, height))
 
-    # Display content based on the selected tab
-    if selected_tab == 'Home':
-        st.title('Welcome to Sign Speak')
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            st.image("ondemand.png", caption='On-Demand lectures', use_column_width=True)
+    results = hands.process(frame_rgb)
 
-        with col2:
-            st.header('On-Demand lectures')
-            st.write('Progress at your own pace, change the video speed, replay lessons, and review content as needed. Each course is packed with vocabulary, numbers, tips about learning Indian Sign Language, fingerspelling practice, and special knowledge of Deaf culture.')
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            st.header('Access on the go or at home!')
-            st.write('Busy lifestyle? No problem! You can immerse yourself in ISL from the comfort of your home or even during your lunch break at work.')
-        
+    if results.multi_hand_landmarks:
+        for hand_landmarks in results.multi_hand_landmarks:
+            mp_drawing.draw_landmarks(
+                frame,
+                hand_landmarks,
+                mp_hands.HAND_CONNECTIONS,
+                mp_drawing_styles.get_default_hand_landmarks_style(),
+                mp_drawing_styles.get_default_hand_connections_style())
 
-        with col2:
-            st.image("1.jpg", caption='On-Demand lectures', use_column_width=True)
+            for i in range(len(hand_landmarks.landmark)):
+                x = hand_landmarks.landmark[i].x
+                y = hand_landmarks.landmark[i].y
+                data_aux.append(x)
+                data_aux.append(y)
 
-        st.header("ISL Courses")
-        st.write("Whether you're fully committed to learning ISL or just want to get your feet wet, we've got the course for you. We’ve even bundled our most popular courses for even greater savings!")
-        with st.expander("Click here to explore what we offer!", expanded=False):
-            # Add clickable buttons inside the expander
-            if st.button('Button 1'):
-                st.session_state.current_choice = 'Numbers'
-                st.session_state.current_page = 1
-            if st.button('Button 2'):
-                st.session_state.current_choice = 'Alphabets'
-                st.session_state.current_page = 1
-            if st.button('Button 3'):
-                st.write('Button 3 clicked!')
-
-    elif selected_tab == 'About Us':
-        st.title('About Us')
-        st.write('Learn more about us here.')
-
-    elif selected_tab == 'Learn':
-        st.title('Learn')
-
-        # Provide choices between numbers and alphabets
-        choice = st.radio('Choose an option Numbers and Alphabets:', ['Numbers', 'Alphabets','Glossary'])
-
-        if choice == 'Numbers':
-            st.write('You selected Numbers. Add your code for Numbers here if needed.')
-        elif choice == 'Alphabets':
-            st.write('You selected Alphabets. Here is the code:')
+        # Check if hands are detected before trying to predict
+        if data_aux:
+            # Reshape the input to match the expected number of features
+            input_data = np.asarray(data_aux).reshape(1, -1)
             
-            # Keep track of the current page number
-            current_page = st.session_state.get('current_page', 1)
-            
-            # Add dropdown for all pages
-            all_pages = list(range(1, 27))
-            page_selection = st.selectbox('Select a page', all_pages, index=current_page - 1)
-            display_page(page_selection)
-            # Add Next and Previous buttons in the same row
-            col1, col2, col3 = st.columns(3)
-            if col1.button('Previous', key='prev_button'):
-                current_page = max(1, current_page - 1)
-            col2.write(f'Page: {current_page}')
-            if col3.button('Next', key='next_button'):
-                current_page += 1
 
-            # Update the current page in session state
-            st.session_state.current_page = current_page
-        
-        elif choice == 'Glossary':
-            st.write("test")
+            # Get the number of features from the input data shape
+            #num_features = input_data.shape[1]
+            
+            # Ensure the input data has the correct shape
+            #if num_features == model_dict.get('num_features', None):
+                # Predict the class (or use predict_proba for probability estimates)
+            prediction = model.predict(input_data)
+            predicted_character = labels_dict[int(prediction[0])]
+            print(f"Predicted class: {predicted_character}")
+        else:
+            print("mismatch")
+           
+    cv2.imshow('frame', frame)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
