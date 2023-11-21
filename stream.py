@@ -9,10 +9,9 @@ def display_page(page_number):
     col1.image(image_path, caption=f"Image {page_number}", width=200)
     col2.image(image_path, caption=f"Image {page_number}", width=200)
 
-# Create a sidebar for page navigation
+
 selected_tab = st.sidebar.radio('Select a tab', ['Home', 'About Us', 'Learn'])
 
-# Inject CSS for hover effect
 st.markdown(
     """
     <style>
@@ -27,11 +26,42 @@ st.markdown(
 
 # Display content based on the selected tab
 if selected_tab == 'Home':
-    st.title('Welcome to the Home Page')
-    st.write('This is the Home page content.')
+    st.title('Welcome to Sign Speak')
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.image("ondemand.png", caption='On-Demand lectures', use_column_width=True)
+
+    with col2:
+        st.header('On-Demand lectures')
+        st.write('Progress at your own pace, change the video speed, replay lessons, and review content as needed. Each course is packed with vocabulary, numbers, tips about learning Indian Sign Language, fingerspelling practice, and special knowledge of Deaf culture.')
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.header('Access on the go or at home!')
+        st.write('Busy lifestyle? No problem! You can immerse yourself in ISL from the comfort of your home or even during your lunch break at work.')
+    
+
+    with col2:
+        st.image("1.jpg", caption='On-Demand lectures', use_column_width=True)
+
+    st.header("ISL Courses")
+    st.write("Whether you're fully commited to learning ISL or just want to get your feet wet, we've got the course for you. We’ve even bundled our most popular courses for even greater savings!")
+    with st.expander("Click here to explore what we offer!", expanded=False):
+        # Add clickable buttons inside the expander
+        if st.button('Button 1'):
+            st.session_state.current_choice = 'Numbers'
+            st.session_state.current_page = 1
+        if st.button('Button 2'):
+            st.session_state.current_choice = 'Alphabets'
+            st.session_state.current_page = 1
+        if st.button('Button 3'):
+            st.write('Button 3 clicked!')
+
 elif selected_tab == 'About Us':
     st.title('About Us')
     st.write('Learn more about us here.')
+
 elif selected_tab == 'Learn':
     st.title('Learn')
 
@@ -62,4 +92,3 @@ elif selected_tab == 'Learn':
         st.session_state.current_page = current_page
 
         # Display the selected page
-        
