@@ -7,6 +7,7 @@ import numpy as np
 import cv2
 from streamlit.components.v1 import components
 
+st.set_page_config(page_title="Sign Speak", page_icon="✌️")
 
 # Initialize session state
 if 'is_authenticated' not in st.session_state:
@@ -25,8 +26,8 @@ if not st.session_state.is_authenticated:
     with placeholder.form("login"):
         st.markdown("#### Welcome to Sign Speak!")
         st.markdown("Enter your credentials")
-        email = st.text_input("Email")
-        password = st.text_input("Password", type="password")
+        email = st.text_input("Email",key='email')
+        password = st.text_input("Password", type="password",key='password')
         submit = st.form_submit_button("Login")
 
     if submit and email == actual_email and password == actual_password:
@@ -49,35 +50,62 @@ if st.session_state.is_authenticated:
         # Display an image from file
         image_path = f"{page_number}.jpg"
         col1.image(image_path, caption=f"Letter {chr(65+page_number-1)}", width=200)
+        
+        with col2:
+            
+            # Streamlit window to display webcam feed
+            FRAME_WINDOW = st.image([])
+            stop_button = col2.button("Stop Camera", key="stop_button")
+            # OpenCV camera initialization
+            camera = cv2.VideoCapture(0)
 
-
-        # Create a VideoCapture object
-        cap = cv2.VideoCapture(0)
-
-        if not cap.isOpened():
-            st.error("Error capturing video stream.")
-        else:
-            # Read frames from the camera and display them
             while True:
-                ret, frame = cap.read()
+                # Capture frame-by-frame
+                ret, frame = camera.read()
 
+                # Check if the frame is captured successfully
                 if not ret:
-                    st.error("Error capturing video stream.")
                     break
 
-                # Resize the frame to fit the column width
-                resized_frame = cv2.resize(frame, (200, 200))
+                # Convert BGR to RGB
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-                # Display the frame in the Streamlit app
-                col2.image(resized_frame, channels="BGR", use_column_width=True)
+                # Display the frame in Streamlit
+                FRAME_WINDOW.image(frame_rgb, channels="RGB")
 
-
-                stop_signal = st.button("Stop Camera")
-                if stop_signal:
+                if stop_button:
                     break
 
-        # Release the VideoCapture object when done
-        cap.release()
+
+
+            # Release the camera resources
+            camera.release()
+ 
+        # # Create a VideoCapture object
+        # cap = cv2.VideoCapture(0)
+
+        # if not cap.isOpened():
+        #     st.error("Error capturing video stream.")
+        # else:
+        #     # Read frames from the camera and display them
+        #     while True:
+        #         ret, frame = cap.read()
+
+        #         if not ret:
+        #             st.error("Error capturing video stream.")
+        #             break
+
+        #         # Resize the frame to fit the column width
+        #         resized_frame = cv2.resize(frame, (200, 200))
+
+        #         # Display the frame in the Streamlit app
+        #         col2.image(resized_frame, channels="BGR", use_column_width=True)
+
+
+        
+
+        # # Release the VideoCapture object when done
+        # cap.release()
 
     selected_tab = st.sidebar.radio('Select a tab', ['Home', 'Learn', 'About Us'])
 
