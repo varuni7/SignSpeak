@@ -76,36 +76,43 @@ if st.session_state.is_authenticated:
                 if stop_button:
                     break
 
+            # Release the camera resources
+            camera.release()
 
+    def display_page_number(page_number):
+        st.title(f"Number {page_number}")
+        col1, col2 = st.columns(2)
+
+        image_path = f"{page_number}_number.jpg"
+        col1.image(image_path, caption=f"Number {page_number}", width=200)
+        
+        with col2:
+            
+            # Streamlit window to display webcam feed
+            FRAME_WINDOW = st.image([])
+            stop_button = col2.button("Stop Camera", key="stop_button")
+            # OpenCV camera initialization
+            camera = cv2.VideoCapture(0)
+
+            while True:
+                # Capture frame-by-frame
+                ret, frame = camera.read()
+
+                # Check if the frame is captured successfully
+                if not ret:
+                    break
+
+                # Convert BGR to RGB
+                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+                # Display the frame in Streamlit
+                FRAME_WINDOW.image(frame_rgb, channels="RGB")
+
+                if stop_button:
+                    break
 
             # Release the camera resources
             camera.release()
- 
-        # # Create a VideoCapture object
-        # cap = cv2.VideoCapture(0)
-
-        # if not cap.isOpened():
-        #     st.error("Error capturing video stream.")
-        # else:
-        #     # Read frames from the camera and display them
-        #     while True:
-        #         ret, frame = cap.read()
-
-        #         if not ret:
-        #             st.error("Error capturing video stream.")
-        #             break
-
-        #         # Resize the frame to fit the column width
-        #         resized_frame = cv2.resize(frame, (200, 200))
-
-        #         # Display the frame in the Streamlit app
-        #         col2.image(resized_frame, channels="BGR", use_column_width=True)
-
-
-        
-
-        # # Release the VideoCapture object when done
-        # cap.release()
 
     selected_tab = st.sidebar.radio('Select a tab', ['Home', 'Learn', 'About Us'])
 
@@ -158,7 +165,25 @@ if st.session_state.is_authenticated:
         choice = st.radio('Choose an option Numbers and Alphabets:', ['Numbers', 'Alphabets','Glossary'])
 
         if choice == 'Numbers':
-            st.write('You selected Numbers. Add your code for Numbers here if needed.')
+            st.write("You've selected the Numbers course")
+            
+            # Keep track of the current page number
+            current_page = st.session_state.get('current_page', 1)
+            
+            # Add dropdown for all pages
+            all_pages = list(range(1, 9))
+            page_selection = st.selectbox('Select a Number', all_pages, index=current_page - 1)
+            display_page_number(page_selection)
+            # Add Next and Previous buttons in the same row
+            col1, col2, col3 = st.columns(3)
+            if col1.button('Previous', key='prev_button'):
+                current_page = max(1, current_page - 1)
+            col2.write(f'Page: {current_page}')
+            if col3.button('Next', key='next_button'):
+                current_page += 1
+
+            # Update the current page in session state
+            st.session_state.current_page = current_page
         elif choice == 'Alphabets':
             st.write("You've selected the Alphabets course")
             
